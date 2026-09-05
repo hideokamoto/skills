@@ -98,9 +98,6 @@ def search_handbook(query: str, handbook: str = None, limit: int = 5) -> str:
             "subtype": subtype_raw  # Keep original for fetch_content.py
         })
     
-    if not results:
-        return json.dumps({"message": "No results found", "results": []}, ensure_ascii=False, indent=2)
-    
     return json.dumps(results, ensure_ascii=False, indent=2)
 
 
@@ -128,7 +125,11 @@ def main():
             handbook = arg2
     
     if len(sys.argv) > 3:
-        limit = int(sys.argv[3])
+        try:
+            limit = int(sys.argv[3])
+        except ValueError:
+            print(json.dumps({"error": "Limit must be an integer"}, ensure_ascii=False, indent=2))
+            sys.exit(1)
     
     print(search_handbook(query, handbook, limit))
 

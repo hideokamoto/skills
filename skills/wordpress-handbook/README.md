@@ -56,7 +56,7 @@ python3 scripts/search.py "<query>" [handbook|all] [limit]
 | `handbook` | No | One of the shortnames above, or `all`. Omit to search all handbooks. |
 | `limit` | No | Max results (default 5, max 20) |
 
-Output: JSON array of `{ id, title, url, handbook, subtype }`.
+Output: JSON array of `{ id, title, url, handbook, subtype }` (empty array `[]` if no results). On error, a JSON object `{ error }` instead.
 
 Examples:
 
@@ -94,7 +94,7 @@ python3 scripts/fetch_content.py plugin-handbook 11070
 
 ## Notes
 
-- Search returns metadata (titles/URLs); full text comes from `fetch_content.py`.
+- Search returns metadata (`id`, `title`, `url`, `handbook`, `subtype`); full text comes from `fetch_content.py`.
 - Responses are HTML; downstream tooling should strip or render appropriately.
 - Omitting the handbook argument searches across handbooks—useful for broad topics.
 

@@ -56,7 +56,7 @@ python3 scripts/search.py "<query>" [handbook|all] [limit]
 | `handbook` | いいえ | 上表の Shortname または `all`。省略時は全ハンドブック |
 | `limit` | いいえ | 件数（既定 5、最大 20） |
 
-出力: `{ id, title, url, handbook, subtype }` の JSON 配列。
+出力: `{ id, title, url, handbook, subtype }` の JSON 配列（結果 0 件でも空配列 `[]`）。エラー時は `{ error }` の JSON オブジェクト。
 
 例:
 
@@ -94,7 +94,7 @@ python3 scripts/fetch_content.py plugin-handbook 11070
 
 ## 注意
 
-- 検索 API ではタイトル・URL などに限られるため、全文は `fetch_content.py` を使う  
+- 検索 API は `id`, `title`, `url`, `handbook`, `subtype` のメタデータのみを返すため、全文は `fetch_content.py` を使う  
 - 本文は HTML のため、利用側で整形・タグ除去が必要な場合があります  
 - `handbook` を省略すると横断検索になり、広いトピック向きです  
 
