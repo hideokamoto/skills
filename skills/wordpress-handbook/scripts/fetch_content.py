@@ -87,6 +87,7 @@ def fetch_content(subtype: str, article_id: int) -> str:
 
 
 def main():
+    """Parse CLI arguments, fetch the requested article, and print the JSON result."""
     if len(sys.argv) < 3:
         print(json.dumps({
             "error": "Usage: fetch_content.py <subtype> <id>",

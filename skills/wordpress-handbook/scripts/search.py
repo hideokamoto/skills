@@ -105,6 +105,7 @@ def search_handbook(query: str, handbook: str = None, limit: int = 5) -> str:
 
 
 def main():
+    """Parse CLI arguments, run a handbook search, and print the JSON result."""
     if len(sys.argv) < 2:
         print(json.dumps({
             "error": "Usage: search.py <query> [handbook|all] [limit]",
