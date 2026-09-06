@@ -23,16 +23,15 @@ ALL_HANDBOOKS = ",".join(HANDBOOK_MAP.values())
 
 def search_handbook(query: str, handbook: str = None, limit: int = 5) -> str:
     """
-    Search WordPress handbooks.
+    WordPress のハンドブックを検索し、結果またはエラーを JSON 文字列で返す。
     
-    Args:
-        query: Search keywords
-        handbook: Shortname (plugin, theme, block, rest-api, apis, coding, admin)
-                  or None for all handbooks
-        limit: Max results (1-20)
+    Parameters:
+        query (str): 検索キーワード
+        handbook (str, optional): 検索対象のハンドブック略称。省略時はすべてのハンドブックを対象とする。
+        limit (int): 取得する結果数。1〜20の範囲に調整される。
     
     Returns:
-        JSON string of results or error
+        str: 検索結果またはエラー情報を含む整形済み JSON 文字列
     """
     base_url = "https://developer.wordpress.org/wp-json/wp/v2/search"
     
@@ -102,7 +101,9 @@ def search_handbook(query: str, handbook: str = None, limit: int = 5) -> str:
 
 
 def main():
-    """Parse CLI arguments, run a handbook search, and print the JSON result."""
+    """
+    コマンドライン引数を解析してハンドブックを検索し、JSON形式の結果を標準出力に出力する。
+    """
     if len(sys.argv) < 2:
         print(json.dumps({
             "error": "Usage: search.py <query> [handbook|all] [limit]",

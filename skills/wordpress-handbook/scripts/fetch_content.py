@@ -21,14 +21,14 @@ VALID_SUBTYPES = {
 
 def fetch_content(subtype: str, article_id: int) -> str:
     """
-    Fetch full content of a handbook article.
+    WordPressハンドブックの記事本文を取得する。
     
-    Args:
-        subtype: Full subtype (e.g., plugin-handbook)
-        article_id: Article ID from search results
+    Parameters:
+        subtype (str): 記事のサブタイプ（例: ``plugin-handbook``）
+        article_id (int): 取得する記事のID
     
     Returns:
-        JSON string with article content or error
+        str: 記事のID、タイトル、URL、抜粋、本文を含むJSON文字列。取得に失敗した場合はエラー情報を含むJSON文字列。
     """
     if subtype not in VALID_SUBTYPES:
         return json.dumps({
@@ -87,7 +87,11 @@ def fetch_content(subtype: str, article_id: int) -> str:
 
 
 def main():
-    """Parse CLI arguments, fetch the requested article, and print the JSON result."""
+    """
+    コマンドライン引数を解析し、指定された記事のJSON結果を出力する。
+    
+    引数が不足している場合や記事IDが整数でない場合は、エラー情報を出力して終了する。
+    """
     if len(sys.argv) < 3:
         print(json.dumps({
             "error": "Usage: fetch_content.py <subtype> <id>",
