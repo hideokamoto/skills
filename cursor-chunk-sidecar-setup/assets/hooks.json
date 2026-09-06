@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "command": ".cursor/hooks/pre-commit-check.sh"
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/chunk-validate-stop.sh"
+      }
+    ]
+  }
+}
