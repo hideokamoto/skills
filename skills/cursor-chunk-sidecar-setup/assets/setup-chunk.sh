@@ -7,14 +7,18 @@
 # brew もこのスクリプトが生成する SSH 鍵も入っていない。そのため brew があれば
 # それを使い、無ければ GitHub Releases から Linux バイナリを直接取得する。
 #
-# 要検証: GitHub Releases のアセット名（OS/arch の表記ゆれ）は変わりうる。
-# 一致するアセットが見つからずに失敗した場合は、
-# https://github.com/CircleCI-Public/chunk/releases を開いて
-# ASSET マッチングの正規表現（下の python3 部分）を実際のファイル名に合わせて直すこと。
+# リポジトリ名は CircleCI-Public/chunk-cli （CircleCI-Public/chunk は存在しない）。
+# アセット名のテンプレートは chunk-cli リポジトリの .goreleaser.yaml
+# ({ProjectName}_{Os with initial capital}_{x86_64|arm64}.tar.gz、ProjectName は
+# "chunk-cli"）から決まる固定形式なので、GitHub API を叩いてアセット一覧を
+# JSON パースする必要はなく、latest/download の URL を直接組み立てられる。
+# 404 になった場合は .goreleaser.yaml が変わった可能性があるので
+# https://github.com/CircleCI-Public/chunk-cli/blob/main/.goreleaser.yaml を
+# 見て命名規則を確認し、下の URL 組み立てを合わせる。
 
 set -euo pipefail
 
-CHUNK_REPO="CircleCI-Public/chunk"
+CHUNK_REPO="CircleCI-Public/chunk-cli"
 INSTALL_DIR="${CHUNK_INSTALL_DIR:-$HOME/.local/bin}"
 SSH_KEY="$HOME/.ssh/chunk_ai"
 
@@ -32,7 +36,16 @@ elif command -v brew >/dev/null 2>&1; then
 else
   echo "[setup-chunk] brew not found. Installing chunk from GitHub Releases."
 
-  OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  OS_RAW="$(uname -s)"
+  case "$OS_RAW" in
+    Linux) OS_TITLE="Linux" ;;
+    Darwin) OS_TITLE="Darwin" ;;
+    *)
+      echo "[setup-chunk] Unsupported OS: $OS_RAW" >&2
+      exit 1
+      ;;
+  esac
+
   ARCH="$(uname -m)"
   case "$ARCH" in
     x86_64 | amd64) ARCH="x86_64" ;;
@@ -43,36 +56,29 @@ else
       ;;
   esac
 
-  API_URL="https://api.github.com/repos/${CHUNK_REPO}/releases/latest"
-  ASSET_URL="$(
-    curl -fsSL "$API_URL" | python3 -c "
-import json, sys
-data = json.load(sys.stdin)
-os_name = '${OS}'
-arch = '${ARCH}'
-for asset in data.get('assets', []):
-    name = asset['name'].lower()
-    if os_name in name and arch in name:
-        print(asset['browser_download_url'])
-        break
-"
-  )"
-
-  if [ -z "$ASSET_URL" ]; then
-    echo "[setup-chunk] Could not find a release asset matching ${OS}/${ARCH}." >&2
-    echo "[setup-chunk] Check https://github.com/${CHUNK_REPO}/releases and fix the matching logic above." >&2
-    exit 1
-  fi
+  # goreleaser のテンプレート: {ProjectName}_{Os}_{Arch}.tar.gz
+  ASSET_NAME="chunk-cli_${OS_TITLE}_${ARCH}.tar.gz"
+  ASSET_URL="https://github.com/${CHUNK_REPO}/releases/latest/download/${ASSET_NAME}"
 
   TMP_DIR="$(mktemp -d)"
   trap 'rm -rf "$TMP_DIR"' EXIT
   echo "[setup-chunk] Downloading $ASSET_URL"
-  curl -fsSL "$ASSET_URL" -o "$TMP_DIR/chunk.tar.gz"
+  if ! curl -fsSL "$ASSET_URL" -o "$TMP_DIR/chunk.tar.gz"; then
+    echo "[setup-chunk] Failed to download ${ASSET_NAME}." >&2
+    echo "[setup-chunk] Check https://github.com/CircleCI-Public/chunk-cli/releases for the actual asset name and adjust ASSET_NAME above if the naming template changed." >&2
+    exit 1
+  fi
   tar -xzf "$TMP_DIR/chunk.tar.gz" -C "$TMP_DIR"
 
-  CHUNK_BIN="$(find "$TMP_DIR" -type f -name chunk | head -n1)"
-  if [ -z "$CHUNK_BIN" ]; then
-    echo "[setup-chunk] Downloaded archive did not contain a 'chunk' binary." >&2
+  # アーカイブ直下に chunk バイナリが置かれる（LICENSE, README.md,
+  # share/bash-completion/completions/chunk 等も同梱される）。
+  # share/bash-completion/completions/chunk も同じファイル名 "chunk" なので、
+  # `find -name chunk` で探すとそちらを拾ってしまうことがある。直下の
+  # ファイルを直接指定する。
+  CHUNK_BIN="$TMP_DIR/chunk"
+  if [ ! -f "$CHUNK_BIN" ]; then
+    echo "[setup-chunk] Downloaded archive did not contain a top-level 'chunk' binary." >&2
+    echo "[setup-chunk] Check https://github.com/CircleCI-Public/chunk-cli/releases and the archive layout." >&2
     exit 1
   fi
   install -m 0755 "$CHUNK_BIN" "$INSTALL_DIR/chunk"
