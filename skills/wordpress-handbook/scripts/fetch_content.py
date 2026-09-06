@@ -24,7 +24,7 @@ def fetch_content(subtype: str, article_id: int) -> str:
     WordPressハンドブックの記事本文を取得する。
     
     Parameters:
-        subtype (str): 記事のサブタイプ（例: ``plugin-handbook``）
+        subtype (str): 記事のサブタイプ (例: ``plugin-handbook``)
         article_id (int): 取得する記事のID
     
     Returns:
