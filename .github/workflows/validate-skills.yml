@@ -1,0 +1,50 @@
+name: Validate skills
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/**"
+      - "README.md"
+      - "README.ja.md"
+      - ".github/workflows/validate-skills.yml"
+      - ".github/scripts/**"
+  pull_request:
+    paths:
+      - "skills/**"
+      - "README.md"
+      - "README.ja.md"
+      - ".github/workflows/validate-skills.yml"
+      - ".github/scripts/**"
+
+permissions:
+  contents: read
+
+jobs:
+  frontmatter:
+    name: SKILL.md frontmatter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install pyyaml
+      - run: python3 .github/scripts/validate_skills.py
+
+  readme-consistency:
+    name: README lists every skill
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 .github/scripts/check_readme_consistency.py
+
+  wordpress-handbook-smoke:
+    name: wordpress-handbook live smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 .github/scripts/smoke_test_wordpress_handbook.py
