@@ -177,7 +177,7 @@ echo '{"hook_event_name":"stop","status":"completed","loop_count":0}' | .cursor/
 
 - active sidecar が無ければ `.chunk/config.json` の `validation.sidecarImage` から作成
 - sync → remote `chunk validate` が走る
-- exit code は常に `0`（stop フックの exit code に allow/deny の意味は無いため）
+- exit code は常に `0`（stop フックで exit code `2` がどう扱われるかは未確認のため、exit code には意味を持たせず、継続させるかどうかは `followup_message` の有無だけで制御する）
 - stdout には `followup_message` を含む JSON は出ない（または空）
 
 失敗時も exit code は `0` のままで、代わりに stdout に

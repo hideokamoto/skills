@@ -14,9 +14,10 @@
 # 出力仕様（cursor.com/docs/hooks 記載）: stop フックは stdout に
 # {"followup_message": "..."} を返すと、Cursor がそれを次のユーザー発言として
 # 自動投稿し、エージェントに継続作業させる。followup_message を返さなければ
-# セッションはそのまま終了してよいという扱いになる。exit code そのものに
-# Claude Code の PreToolUse のような allow/deny の意味は無いため、ここでは
-# 常に exit 0 とし、続けさせたいかどうかは followup_message の有無で制御する。
+# セッションはそのまま終了する。beforeShellExecution では exit code 2 が
+# deny 相当と文書化されているが、stop フックで exit code 2 がどう扱われるかは
+# 未確認。そのため exit code には意味を持たせず常に exit 0 とし、続けさせたい
+# かどうかは followup_message の有無だけで制御する。
 #
 # ループ上限: chunk 自身の Claude Code 向け Stop フックも stopHookMaxAttempts
 # のデフォルトを 3 にしている（chunk-cli docs/GETTING_STARTED.md）ので、
