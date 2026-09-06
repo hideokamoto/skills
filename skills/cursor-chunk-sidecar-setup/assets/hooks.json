@@ -3,7 +3,8 @@
   "hooks": {
     "beforeShellExecution": [
       {
-        "command": ".cursor/hooks/pre-commit-check.sh"
+        "command": ".cursor/hooks/pre-commit-check.sh",
+        "failClosed": true
       }
     ],
     "stop": [

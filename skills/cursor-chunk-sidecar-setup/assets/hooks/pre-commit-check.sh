@@ -5,12 +5,18 @@
 # `chunk validate --remote`（本番 CI に近い検証）は stop フック側の役割なので、
 # ここでは重複させず軽量チェックに留める。
 #
-# 要検証: beforeShellExecution の stdin JSON の形（コマンド文字列の
-# フィールド名）と、コマンドを許可/ブロックする際の出力仕様（exit code /
-# JSON のどちらで判定するか）は公式ドキュメント
-# (https://cursor.com/docs/hooks.md) で必ず確認し、実際のフィールド名に
-# 合わせて `COMMAND` の抽出ロジックを調整すること。ここでは
-# `{"command": "..."}` という素直な形を仮定している。
+# stdin JSON には command（実行しようとしているコマンド文字列全体）に加えて
+# cwd、sandbox も含まれる（cursor.com/docs/hooks 記載、command のみ使用）。
+#
+# 出力仕様: beforeShellExecution はフックが JSON を返さない／異常終了した
+# 場合はコマンドを通してしまう fail-open がデフォルト（hooks.json 側で
+# failClosed を明示しない限り）。そのため、ここでは単に exit 1 するのではなく
+# 必ず {"permission": "allow"|"deny", ...} を stdout に JSON で出す。
+# exit code 2 も deny と等価に扱われる（Claude Code の PreToolUse 互換のため
+# 用意されている仕様）ので、deny 時は JSON と exit 2 の両方を返し、
+# どちらの解釈でもブロックされるようにしている。
+# gate 自体の出力（npm ci / npm test のログ）は stdout の JSON を汚さないよう
+# 常に stderr へ流す。
 
 set -uo pipefail
 
@@ -30,16 +36,26 @@ except Exception:
 case "$COMMAND" in
   *"git commit"*)
     echo "[pre-commit-check] git commit detected. Running npm ci && npm test locally." >&2
-    if npm ci && npm test; then
+    if npm ci >&2 && npm test >&2; then
       echo "[pre-commit-check] local gate passed." >&2
+      echo '{"permission":"allow"}'
       exit 0
     else
       echo "[pre-commit-check] local gate failed. Blocking commit." >&2
-      exit 1
+      python3 -c "
+import json
+print(json.dumps({
+    'permission': 'deny',
+    'user_message': 'npm ci / npm test failed, so the commit was blocked.',
+    'agent_message': 'The local gate (npm ci && npm test) failed. Fix the failing tests before running git commit again.',
+}))
+"
+      exit 2
     fi
     ;;
   *)
     # git commit 以外のコマンドはそのまま素通しする。
+    echo '{"permission":"allow"}'
     exit 0
     ;;
 esac
