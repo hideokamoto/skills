@@ -2,7 +2,7 @@
 
 An [Agent Skill](https://agentskills.io) that searches the official WordPress Developer Handbooks on [developer.wordpress.org](https://developer.wordpress.org/) so coding agents can answer plugin/theme/block-editor/REST API/coding-standards questions from primary sources.
 
-Parent repository: [hideokamoto/wordpress-skills](https://github.com/hideokamoto/wordpress-skills).
+This repository ([hideokamoto/skills](https://github.com/hideokamoto/skills)) is the canonical source for this skill. It originally came from [hideokamoto/wordpress-skills](https://github.com/hideokamoto/wordpress-skills), but installs should point at `hideokamoto/skills`.
 
 ## What it does
 
@@ -21,23 +21,18 @@ Parent repository: [hideokamoto/wordpress-skills](https://github.com/hideokamoto
 | `coding` | `wpcs-handbook` | WordPress Coding Standards |
 | `admin` | `adv-admin-handbook` | Advanced Administration |
 
-## Install (recommended)
-
-Use the umbrella repo so paths and versioning match [wordpress-skills](https://github.com/hideokamoto/wordpress-skills).
+## Install
 
 ### GitHub CLI (`gh skill`)
 
 ```bash
-gh skill install hideokamoto/wordpress-skills wordpress-handbook
-
-# Pin a release
-gh skill install hideokamoto/wordpress-skills wordpress-handbook --pin v0.1.0
+gh skill install hideokamoto/skills wordpress-handbook
 ```
 
 ### Vercel skills CLI (`npx skills`)
 
 ```bash
-npx skills add hideokamoto/wordpress-skills --skill wordpress-handbook
+npx skills add hideokamoto/skills --skill wordpress-handbook
 ```
 
 ## Run the scripts locally
@@ -100,4 +95,4 @@ python3 scripts/fetch_content.py plugin-handbook 11070
 
 ## License
 
-Apache-2.0 (see the parent repository).
+Apache-2.0 (see [LICENSE](./LICENSE)).

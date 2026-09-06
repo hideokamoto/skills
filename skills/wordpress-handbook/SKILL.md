@@ -20,12 +20,16 @@ Search the official WordPress Developer Handbooks at developer.wordpress.org.
 | `coding` | `wpcs-handbook` | WordPress Coding Standards |
 | `admin` | `adv-admin-handbook` | Advanced Administration |
 
+## Locating the scripts
+
+Claude Code expands `${CLAUDE_SKILL_DIR}` to the directory containing this SKILL.md file, so the commands below use it to build absolute script paths. Use it too when you invoke these scripts directly: the shell you run commands in is normally the project's working directory, not this skill's directory, so a bare `scripts/search.py` fails with "No such file or directory". On agents that do not expand `${CLAUDE_SKILL_DIR}`, resolve it yourself — find the directory where this SKILL.md file lives and use that as the base for the paths below.
+
 ## Tools
 
 ### 1. Search Handbooks
 
 ```bash
-python3 scripts/search.py "<query>" [handbook|all] [limit]
+python3 "${CLAUDE_SKILL_DIR}/scripts/search.py" "<query>" [handbook|all] [limit]
 ```
 
 **Arguments:**
@@ -38,13 +42,13 @@ python3 scripts/search.py "<query>" [handbook|all] [limit]
 **Examples:**
 ```bash
 # Search all handbooks
-python3 scripts/search.py "custom post type"
+python3 "${CLAUDE_SKILL_DIR}/scripts/search.py" "custom post type"
 
 # Search only plugin handbook
-python3 scripts/search.py "register_post_type" plugin
+python3 "${CLAUDE_SKILL_DIR}/scripts/search.py" "register_post_type" plugin
 
 # Search coding standards with limit
-python3 scripts/search.py "naming conventions" coding 10
+python3 "${CLAUDE_SKILL_DIR}/scripts/search.py" "naming conventions" coding 10
 ```
 
 ### 2. Fetch Content
@@ -52,7 +56,7 @@ python3 scripts/search.py "naming conventions" coding 10
 After finding a relevant result, fetch its full content:
 
 ```bash
-python3 scripts/fetch_content.py "<subtype>" <id>
+python3 "${CLAUDE_SKILL_DIR}/scripts/fetch_content.py" "<subtype>" <id>
 ```
 
 **Arguments:**
@@ -63,7 +67,7 @@ python3 scripts/fetch_content.py "<subtype>" <id>
 
 **Example:**
 ```bash
-python3 scripts/fetch_content.py plugin-handbook 11070
+python3 "${CLAUDE_SKILL_DIR}/scripts/fetch_content.py" plugin-handbook 11070
 ```
 
 ## Workflow
