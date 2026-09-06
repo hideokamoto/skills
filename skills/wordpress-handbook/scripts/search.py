@@ -131,7 +131,11 @@ def main():
         except ValueError:
             print(json.dumps({"error": "Limit must be an integer"}, ensure_ascii=False, indent=2))
             sys.exit(1)
-    
+
+    if not (1 <= limit <= 20):
+        print(json.dumps({"error": "Limit must be between 1 and 20"}, ensure_ascii=False, indent=2))
+        sys.exit(1)
+
     print(search_handbook(query, handbook, limit))
 
 

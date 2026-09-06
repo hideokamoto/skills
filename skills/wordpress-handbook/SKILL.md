@@ -31,7 +31,7 @@ python3 scripts/search.py "<query>" [handbook|all] [limit]
 **Arguments:**
 - `query` (required): Search keywords
 - `handbook` (optional): Shortname from table above, or `all`. Omit to search all handbooks.
-- `limit` (optional): Number of results (default: 5, max: 20)
+- `limit` (optional): Number of results (default: 5, must be 1-20; out-of-range or non-integer values return a JSON error)
 
 **Output:** JSON array of `{id, title, url, handbook, subtype}` (empty array `[]` if no results). On error, a JSON object `{error}` instead.
 

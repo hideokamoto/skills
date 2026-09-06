@@ -54,7 +54,7 @@ python3 scripts/search.py "<query>" [handbook|all] [limit]
 |------|------|------|
 | `query` | はい | 検索キーワード |
 | `handbook` | いいえ | 上表の Shortname または `all`。省略時は全ハンドブック |
-| `limit` | いいえ | 件数（既定 5、最大 20） |
+| `limit` | いいえ | 件数（既定 5、1〜20 の範囲。範囲外や非整数の場合は JSON エラーを返す） |
 
 出力: `{ id, title, url, handbook, subtype }` の JSON 配列（結果 0 件でも空配列 `[]`）。エラー時は `{ error }` の JSON オブジェクト。
 
