@@ -28,7 +28,9 @@ def search_handbook(query: str, handbook: str = None, limit: int = 5) -> str:
     Parameters:
         query (str): 検索キーワード
         handbook (str, optional): 検索対象のハンドブック略称。省略時はすべてのハンドブックを対象とする。
-        limit (int): 取得する結果数。1〜20の範囲に調整される。
+        limit (int): 取得する結果数。CLI経由（main()）では範囲外の値は呼び出し前にエラーとして
+            拒否されるため、ここに渡る値は通常 1〜20 に収まっている。この関数自身は
+            プログラムから直接呼び出された場合の安全策として、値を 1〜20 の範囲に丸める。
     
     Returns:
         str: 検索結果またはエラー情報を含む整形済み JSON 文字列

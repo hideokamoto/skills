@@ -2,7 +2,7 @@
 
 [developer.wordpress.org](https://developer.wordpress.org/) が公開している WordPress 公式開発者ハンドブックを検索し、プラグイン・テーマ・ブロックエディター・REST API・コーディング規約などの質問に一次情報で答えられるようにする [Agent Skill](https://agentskills.io) です。
 
-親リポジトリ: [hideokamoto/wordpress-skills](https://github.com/hideokamoto/wordpress-skills)
+このリポジトリ（[hideokamoto/skills](https://github.com/hideokamoto/skills)）が本スキルの正規のソースです。もともとは [hideokamoto/wordpress-skills](https://github.com/hideokamoto/wordpress-skills) 由来ですが、インストールは `hideokamoto/skills` から行ってください。
 
 ## できること
 
@@ -21,23 +21,18 @@
 | `coding` | `wpcs-handbook` | WordPress コーディング規約 |
 | `admin` | `adv-admin-handbook` | 高度な管理 |
 
-## インストール（推奨）
-
-パスやバージョンを揃えるため、まとまったリポジトリ [wordpress-skills](https://github.com/hideokamoto/wordpress-skills) から入れるのがおすすめです。
+## インストール
 
 ### GitHub CLI（`gh skill`）
 
 ```bash
-gh skill install hideokamoto/wordpress-skills wordpress-handbook
-
-# バージョンを固定
-gh skill install hideokamoto/wordpress-skills wordpress-handbook --pin v0.1.0
+gh skill install hideokamoto/skills wordpress-handbook
 ```
 
 ### Vercel skills CLI（`npx skills`）
 
 ```bash
-npx skills add hideokamoto/wordpress-skills --skill wordpress-handbook
+npx skills add hideokamoto/skills --skill wordpress-handbook
 ```
 
 ## スクリプトをローカルで動かす
@@ -100,7 +95,7 @@ python3 scripts/fetch_content.py plugin-handbook 11070
 
 ## ライセンス
 
-Apache-2.0（親リポジトリの `LICENSE` を参照）
+Apache-2.0（[LICENSE](./LICENSE) を参照）
 
 ## English
 
