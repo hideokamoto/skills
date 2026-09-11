@@ -14,6 +14,7 @@ This repository is the canonical source for the skills listed here.
 | [`circleci-cli`](./skills/circleci-cli/) | Operates the CircleCI CLI (CLI v1) safely — auth/token checks, org lookup, project create/get, and config-source questions — to prevent recurring CLI mistakes. | Apache-2.0 |
 | [`cursor-chunk-sidecar-setup`](./skills/cursor-chunk-sidecar-setup/) | Sets up a repository already using Chunk sidecar validation under Claude Code so the same sidecar validation also works under Cursor Cloud Agent. | MIT |
 | [`export-session-log`](./skills/export-session-log/) | Hands off a Claude Code session's raw JSONL transcript (every tool_use/tool_result, not a summary) so it can be analyzed elsewhere, in another session or a script. | MIT |
+| [`dialogic-learning-style`](./skills/dialogic-learning-style/) | A custom writing style that paces explanations in chunks, reading progression vs. deep-dive signals from the user's replies so it neither lectures nor over-questions. | MIT |
 
 Each skill directory may carry its own `license` field in `SKILL.md`'s frontmatter; where it differs from this repository's top-level [LICENSE](./LICENSE) (MIT), the skill directory's own license governs that skill.
 
@@ -32,7 +33,7 @@ npx skills add hideokamoto/skills --skill <skill-name>
 npx skills add hideokamoto/skills --list
 ```
 
-Where `<skill-name>` is one of `wordpress-handbook`, `circleci-cli`, `cursor-chunk-sidecar-setup`, or `export-session-log`.
+Where `<skill-name>` is one of `wordpress-handbook`, `circleci-cli`, `cursor-chunk-sidecar-setup`, `export-session-log`, or `dialogic-learning-style`.
 
 ## License
 
