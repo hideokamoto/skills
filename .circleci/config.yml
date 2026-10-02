@@ -1,0 +1,45 @@
+version: 2.1
+
+# Same checks as .github/workflows/validate-skills.yml, run on CircleCI.
+# The scripts stay under .github/scripts so both CIs run the same code.
+
+executors:
+  python:
+    docker:
+      - image: cimg/python:3.12
+    resource_class: small
+
+jobs:
+  frontmatter:
+    executor: python
+    steps:
+      - checkout
+      - run:
+          name: Install Python dependencies
+          command: pip install pyyaml
+      - run:
+          name: Validate SKILL.md frontmatter
+          command: python3 .github/scripts/validate_skills.py
+
+  readme-consistency:
+    executor: python
+    steps:
+      - checkout
+      - run:
+          name: Check README lists every skill
+          command: python3 .github/scripts/check_readme_consistency.py
+
+  wordpress-handbook-smoke:
+    executor: python
+    steps:
+      - checkout
+      - run:
+          name: wordpress-handbook live smoke test
+          command: python3 .github/scripts/smoke_test_wordpress_handbook.py
+
+workflows:
+  validate-skills:
+    jobs:
+      - frontmatter
+      - readme-consistency
+      - wordpress-handbook-smoke
