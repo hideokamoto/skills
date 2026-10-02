@@ -36,8 +36,15 @@ rsync --archive --delete --filter=":- .gitignore" \
   -e "ssh -p <中継ポート> -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
       -o ProxyCommand=none -o ProxyJump=none -o ControlPath=none -o RequestTTY=no \
       -o IdentitiesOnly=yes -i ~/.ssh/chunk_ai" \
-  <git ルート>/ user@127.0.0.1:<git ルート>
+  <実行したディレクトリ>/ user@127.0.0.1:<git ルート>
 ```
+
+- **送り元は「実行したディレクトリ」、宛先は「git ルート」**: メッセージには
+  `Syncing workspace <git ルート>` と出るが、rsync の送り元は `chunk sidecar sync` を
+  実行したディレクトリそのもの。リポジトリのルートで実行すれば全体が送られるが、
+  サブディレクトリで実行すると、そのサブディレクトリの中身が sidecar のルートに送られ、
+  `--delete` のため sidecar 側のルートにあるほかのファイルが消える（実機で確認。
+  手元のファイルは変わらない）。**必ずリポジトリのルートで実行する。**
 
 - **ssh だけが通る理由**: `chunk sidecar ssh` は手元の `ssh` コマンドを使わない。
   OpenSSH クライアントを入れる前から動いていた。そのため、web のコンテナでは
@@ -128,6 +135,7 @@ bash "${CLAUDE_SKILL_DIR}/assets/setup-claude-web.sh"
 2. **目印のファイルで往復を確かめる**: `.gitignore` に入っていないファイルを使う。
 
    ```bash
+   cd "$(git rev-parse --show-toplevel)"   # sync は必ずリポジトリのルートで実行する（下の注意を参照）
    PROBE=.chunk-sync-probe-claude-web   # このスキル専用の名前
    if [ -e "$PROBE" ]; then
      # 同名のファイルを上書き・削除しない。前回の残りなら、中身を確かめてから手で消す
@@ -144,10 +152,14 @@ bash "${CLAUDE_SKILL_DIR}/assets/setup-claude-web.sh"
 
 ## 運用上の注意（実際に踏んだもの）
 
-- **sync の対象は git ルート全体**: サブディレクトリで実行しても、リポジトリ全体が
-  sidecar の同じパスへ送られる。`.gitignore` 対象（`node_modules` など）は送られない。
-  `--delete` 付きなので、手元に無いファイルは sidecar からも消える。テスト結果を
-  リポジトリ内に出すと、次の sync で消えることがある。結果は `/tmp` などに出す。
+- **sync は必ずリポジトリのルートで実行する**: 送り元は実行したディレクトリで、宛先は
+  sidecar 上の git ルート。サブディレクトリで実行すると、そのサブディレクトリの中身が
+  sidecar のルートの位置に送られ、`--delete` で sidecar 側のほかのファイルが消える
+  （実機で確認）。Claude Code の Bash は呼び出しごとに作業ディレクトリが戻ることがあるので、
+  `cd "$(git rev-parse --show-toplevel)" && chunk sidecar sync` のように1行にまとめると安全。
+  - `.gitignore` 対象（`node_modules` など）は送られず、`--delete` からも守られる。
+  - `--delete` 付きなので、手元に無いファイルは sidecar からも消える。テスト結果を
+    リポジトリ内に出すと、次の sync で消えることがある。結果は `/tmp` などに出す。
 - **アクティブな sidecar は「プロジェクト × Claude Code のセッション」ごとに決まる**:
   - `chunk sidecar use <id>` や `create` を実行すると、記録はリポジトリの中ではなく
     `~/.local/share/chunk/<プロジェクトごとのハッシュ>/sidecar.<セッション ID>-<識別子>.json`

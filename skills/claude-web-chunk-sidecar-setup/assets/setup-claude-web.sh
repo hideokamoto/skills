@@ -6,8 +6,9 @@
 # 1. rsync と OpenSSH クライアントを入れる。
 #    `chunk sidecar sync` は内部で外部コマンドの
 #      rsync --archive --delete --filter=":- .gitignore" \
-#        -e "ssh -p <中継ポート> ... -i ~/.ssh/chunk_ai" <git ルート>/ user@127.0.0.1:<git ルート>
-#    を呼ぶ。一方 `chunk sidecar ssh` は外部の ssh を使わないので、web のコンテナでは
+#        -e "ssh -p <中継ポート> ... -i ~/.ssh/chunk_ai" <実行したディレクトリ>/ user@127.0.0.1:<git ルート>
+#    を呼ぶ（送り元は実行したディレクトリ。必ずリポジトリのルートで実行すること）。
+#    一方 `chunk sidecar ssh` は外部の ssh を使わないので、web のコンテナでは
 #    「ssh は通るのに sync だけ失敗する」状態になる。
 #    また web のコンテナはパッケージ一覧が古いことがあり、apt-get update なしだと
 #    openssh-client の取得が 404 になった（2026-10 時点で実際に発生）。
