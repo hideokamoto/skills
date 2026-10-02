@@ -22,6 +22,11 @@ CASES = [
     ("pass.md", 0, "書式に適合した成果物が誤検知なしで通ること"),
     ("fail_header.md", 1, "ヘッダ 3 行の欠落を検出すること"),
     ("fail_position.md", 1, "判定が先頭でない・留保が最後でないことを検出すること"),
+    ("fail_position_head.md", 1, "判定が先頭でないことだけを検出すること"),
+    ("fail_position_tail.md", 1, "留保が最後でないことだけを検出すること"),
+    ("fail_heading_newline.md", 1, "`##` の次の行にある語を見出しとして扱わないこと"),
+    ("fail_limit.md", 1, "字数上限が数値でないことを検出すること"),
+    ("pass_appendix.md", 0, "付録の担当なし項目を留保の検査に含めないこと"),
     ("fail_owner.md", 1, "未確定項目の担当欠落を検出すること"),
     ("fail_length.md", 1, "字数上限の超過を検出すること"),
     ("fail_forbidden.md", 1, "禁止値の印字を検出すること"),
@@ -29,6 +34,7 @@ CASES = [
 
 
 def main():
+    """全フィクスチャを検査し、期待した終了コードと一致しない件数を数える。"""
     mismatch = 0
     for name, want, what in CASES:
         p = subprocess.run(

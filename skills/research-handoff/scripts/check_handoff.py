@@ -23,6 +23,7 @@ TRAILING_ALLOW = {"出典", "参考", "参照", "付録"}
 
 
 def load(path):
+    """UTF-8 でファイルを読む。読めなければ exit 2。"""
     try:
         with open(path, encoding="utf-8") as f:
             return f.read()
@@ -42,17 +43,24 @@ def check_header(lines):
 
 
 def parse_limit(lines):
-    """字数上限をヘッダから読む。読めなければ None。"""
+    """字数上限をヘッダから読む。戻り値は (上限, エラー)。
+
+    `字数上限:` の行が無ければ (None, None)。ヘッダ欠落は check_header が FAIL にする。
+    行があるのに値が数値だけでなければ (None, エラー文)。
+    """
     for line in lines[:3]:
-        m = re.match(r"字数上限:\s*(\d[\d,]*)", line.strip())
-        if m:
-            return int(m.group(1).replace(",", ""))
-    return None
+        s = line.strip()
+        if s.startswith("字数上限:"):
+            value = s[len("字数上限:"):].strip()
+            if re.fullmatch(r"\d[\d,]*", value):
+                return int(value.replace(",", "")), None
+            return None, f"字数上限が数値のみで書かれていない（実際: {value[:20] or '空'}）"
+    return None, None
 
 
 def h2_headings(text):
     """`## ` で始まる見出しを出現順に返す。"""
-    return [m.group(1).strip() for m in re.finditer(r"^##\s+(.+?)\s*$", text, re.M)]
+    return [m.group(1).strip() for m in re.finditer(r"^##[ \t]+(.+?)[ \t]*$", text, re.M)]
 
 
 def check_position(text):
@@ -72,6 +80,7 @@ def check_position(text):
 
 
 def check_length(text, limit):
+    """本文の字数を上限と比べる。上限が読めなかった場合の扱いは呼び出し側で決める。"""
     if limit is None:
         return [], ["字数上限をヘッダから読めなかったため未検査"]
     body = re.sub(r"\A(?:.*\n){0,3}", "", text, count=1)  # ヘッダ 3 行を除く
@@ -82,15 +91,16 @@ def check_length(text, limit):
 
 
 def check_owners(text):
-    """留保節の `- [未確定]` 行に `担当:` があるか。"""
-    m = re.search(r"^##\s+留保\s*$", text, re.M)
-    if not m:
-        return []  # 位置検査側で FAIL しているので二重に出さない
-    tail = text[m.end():]
+    """各 `## 留保` 節の `- [未確定]` 行に `担当:` があるか。次の `## ` 見出しで節を閉じる。"""
     fails = []
-    for line in tail.splitlines():
+    in_reserve = False
+    for line in text.splitlines():
+        m = re.match(r"##[ \t]+(.+?)[ \t]*$", line)
+        if m:
+            in_reserve = m.group(1) == "留保"
+            continue
         s = line.strip()
-        if s.startswith("- [未確定]") and "担当:" not in s:
+        if in_reserve and s.startswith("- [未確定]") and "担当:" not in s:
             fails.append(f"未確定項目に担当がない: {s[:50]}")
     return fails
 
@@ -108,6 +118,7 @@ def check_forbidden(text, path):
 
 
 def main():
+    """引数を読み、各検査を走らせて結果を出力する。FAIL があれば 1 を返す。"""
     ap = argparse.ArgumentParser()
     ap.add_argument("target")
     ap.add_argument("--forbidden", default=None,
@@ -120,9 +131,12 @@ def main():
     fails, notes = [], []
     fails += check_header(lines)
     fails += check_position(text)
-    f, n = check_length(text, parse_limit(lines))
+    limit, limit_error = parse_limit(lines)
+    if limit_error:
+        fails.append(limit_error)
+    f, n = check_length(text, limit)
     fails += f
-    notes += n
+    notes += [] if limit_error else n
     fails += check_owners(text)
     f, n = check_forbidden(text, args.forbidden)
     fails += f
