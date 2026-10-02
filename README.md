@@ -13,6 +13,7 @@ This repository is the canonical source for the skills listed here.
 | [`wordpress-handbook`](./skills/wordpress-handbook/) | Searches the official WordPress Developer Handbooks (Plugin / Theme / Block Editor / REST API / Common APIs / Coding Standards / Advanced Administration) on developer.wordpress.org and fetches full article content on demand. | Apache-2.0 |
 | [`circleci-cli`](./skills/circleci-cli/) | Operates the CircleCI CLI (CLI v1) safely — auth/token checks, org lookup, project create/get, and config-source questions — to prevent recurring CLI mistakes. | Apache-2.0 |
 | [`cursor-chunk-sidecar-setup`](./skills/cursor-chunk-sidecar-setup/) | Sets up a repository already using Chunk sidecar validation under Claude Code so the same sidecar validation also works under Cursor Cloud Agent. | MIT |
+| [`claude-web-chunk-sidecar-setup`](./skills/claude-web-chunk-sidecar-setup/) | Sets up Claude Code on the web (cloud containers) so `chunk sidecar sync` works, not just `chunk sidecar ssh`: installs rsync / OpenSSH client and converts the PKCS#8 ed25519 key chunk generates (which the OpenSSH in Ubuntu 24.04 cannot read) to OpenSSH format. | MIT |
 | [`export-session-log`](./skills/export-session-log/) | Hands off a Claude Code session's raw JSONL transcript (every tool_use/tool_result, not a summary) so it can be analyzed elsewhere, in another session or a script. | MIT |
 | [`dialogic-learning-style`](./skills/dialogic-learning-style/) | A custom writing style that paces explanations in chunks, reading progression vs. deep-dive signals from the user's replies so it neither lectures nor over-questions. | MIT |
 
@@ -33,7 +34,7 @@ npx skills add hideokamoto/skills --skill <skill-name>
 npx skills add hideokamoto/skills --list
 ```
 
-Where `<skill-name>` is one of `wordpress-handbook`, `circleci-cli`, `cursor-chunk-sidecar-setup`, `export-session-log`, or `dialogic-learning-style`.
+Where `<skill-name>` is one of `wordpress-handbook`, `circleci-cli`, `cursor-chunk-sidecar-setup`, `claude-web-chunk-sidecar-setup`, `export-session-log`, or `dialogic-learning-style`.
 
 ## License
 
