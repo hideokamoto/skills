@@ -13,6 +13,7 @@ AI コーディングエージェント（Claude Code・Cursor・Codex など `S
 | [`wordpress-handbook`](./skills/wordpress-handbook/) | developer.wordpress.org の公式 WordPress 開発者ハンドブック（プラグイン / テーマ / ブロックエディター / REST API / 共通 API / コーディング規約 / 高度な管理）を検索し、必要に応じて記事本文を取得します。 | Apache-2.0 |
 | [`circleci-cli`](./skills/circleci-cli/) | CircleCI CLI（CLI v1）を安全に操作します — 認証/トークン確認、org の解決、プロジェクトの作成/取得、config の外部参照可否の判断など、繰り返されがちな CLI ミスを構造で防ぎます。 | Apache-2.0 |
 | [`cursor-chunk-sidecar-setup`](./skills/cursor-chunk-sidecar-setup/) | Claude Code で Chunk sidecar 検証済みのリポジトリを、Cursor Cloud Agent でも同じように sidecar 検証できるようにセットアップします。 | MIT |
+| [`claude-web-chunk-sidecar-setup`](./skills/claude-web-chunk-sidecar-setup/) | Claude Code on the web（クラウドのコンテナ）で `chunk sidecar ssh` だけでなく `chunk sidecar sync` も動くようにします。rsync と OpenSSH クライアントを導入し、chunk が作る PKCS#8 形式の ed25519 鍵（OpenSSH が読めない）を OpenSSH 形式にそろえます。 | MIT |
 | [`export-session-log`](./skills/export-session-log/) | Claude Code セッション自身の生の JSONL トランスクリプト（要約ではなく tool_use/tool_result を含む全イベント）を、別セッションやスクリプトで分析できるように引き渡します。 | MIT |
 | [`dialogic-learning-style`](./skills/dialogic-learning-style/) | チャンク単位で解説し、ユーザーの返答から「進行」と「深掘り」のシグナルを見分けて、一方的な長大解説にも問い詰めにもならないよう対話のペースを制御するカスタム文体スキルです。 | MIT |
 
@@ -33,7 +34,7 @@ npx skills add hideokamoto/skills --skill <skill-name>
 npx skills add hideokamoto/skills --list
 ```
 
-`<skill-name>` には `wordpress-handbook` / `circleci-cli` / `cursor-chunk-sidecar-setup` / `export-session-log` / `dialogic-learning-style` のいずれかが入ります。
+`<skill-name>` には `wordpress-handbook` / `circleci-cli` / `cursor-chunk-sidecar-setup` / `claude-web-chunk-sidecar-setup` / `export-session-log` / `dialogic-learning-style` のいずれかが入ります。
 
 ## ライセンス
 
