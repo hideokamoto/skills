@@ -54,6 +54,8 @@ rsync --archive --delete --filter=":- .gitignore" \
 - chunk は `~/.ssh/chunk_ai` が無いと、自分で鍵を作る。その鍵は PKCS#8 形式の ed25519
   （先頭行が `-----BEGIN PRIVATE KEY-----`）で、OpenSSH 9.6 は
   `Load key "~/.ssh/chunk_ai": invalid format` として読めない。
+  - chunk 本体（Go 製）には `ed25519.GenerateKey` と `MarshalPKCS8PrivateKey` が
+    含まれており、鍵を PKCS#8 で書き出す実装になっているとみられる（文字列で確認）。
 - **chunk とは無関係に再現できる**:
 
   | 鍵 | 形式 | OpenSSH 9.6 で読めたか |
@@ -136,14 +138,18 @@ bash "${CLAUDE_SKILL_DIR}/assets/setup-claude-web.sh"
   sidecar の同じパスへ送られる。`.gitignore` 対象（`node_modules` など）は送られない。
   `--delete` 付きなので、手元に無いファイルは sidecar からも消える。テスト結果を
   リポジトリ内に出すと、次の sync で消えることがある。結果は `/tmp` などに出す。
-- **アクティブな sidecar はプロジェクトごとに決まる**: 記録先はプロジェクトの
-  `.chunk/sidecar.json`（`chunk sidecar use <id>` や `create` で書かれる。
-  chunk 本体の文字列とヘルプで確認）。
+- **アクティブな sidecar は「プロジェクト × Claude Code のセッション」ごとに決まる**:
+  - `chunk sidecar use <id>` や `create` を実行すると、記録はリポジトリの中ではなく
+    `~/.local/share/chunk/<プロジェクトごとのハッシュ>/sidecar.<セッション ID>-<識別子>.json`
+    （`XDG_DATA_HOME` 未設定時）に書かれる。
+    - 中身は `sidecar_ids` と `session_id` で、同じディレクトリの `project-root` に
+      リポジトリのパスが入る（実際に `use` して確認）。
+    - chunk 内蔵の説明文によれば、セッションは `CLAUDE_CODE_SESSION_ID` で区別し、
+      ブランチごとにも分かれる。ファイル名末尾の識別子がブランチに対応するかは未確認。
   - リポジトリの外（`/tmp` など）から打つと「No active sidecar is set」になる。
     `--sidecar-id <id>` を付ければ、どこからでも動く。
-  - コンテナはセッションごとに作り直されるので、前のセッションの記録は残らない。
-  - セッションごとに変わるローカルな状態なので、`.gitignore` に入っていなければ、
-    誤ってコミットしないよう注意する。
+  - 新しいセッションでは前の記録は引き継がれない。`chunk sidecar list` で ID を確かめ、
+    リポジトリの中で `chunk sidecar use <id>` するか、スナップショットから作り直す。
 - **`chunk sidecar snapshot create` は元の sidecar を削除する**: 撮ったあとも作業を続けたいなら、
   スナップショットから作り直す前提で動く。
 - **`chunk sidecar ssh -- <cmd>` の標準出力はデータの通り道**: ファイルを
