@@ -20,9 +20,10 @@
 #
 # 3. ~/.ssh/chunk_ai を OpenSSH が読める形式にそろえる。
 #    chunk（v0.7.192）が自分で作る鍵は PKCS#8 形式の ed25519
-#    （先頭行が "-----BEGIN PRIVATE KEY-----"）で、OpenSSH 9.6 はこれを
-#    "invalid format" として読めない。chunk 自身は OpenSSH 形式の鍵も読めるので、
-#    OpenSSH 形式にそろえれば ssh と sync の両方が動く。鍵を作り直しても、
+#    （先頭行が "-----BEGIN PRIVATE KEY-----"）で、Ubuntu 24.04 の OpenSSH 9.6p1 は
+#    これを "invalid format" として読めない（実測。OpenSSH 一般の制約ではない）。
+#    chunk 自身は OpenSSH 形式の鍵も読めるので、OpenSSH 形式にそろえれば ssh と sync の
+#    両方が動く。鍵を作り直しても、
 #    古い鍵で作った既存の sidecar に add-ssh-key なしで接続できることを実機で確認済み。
 
 set -euo pipefail

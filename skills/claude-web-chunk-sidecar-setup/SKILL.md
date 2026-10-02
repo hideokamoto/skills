@@ -4,7 +4,7 @@ description: >-
   Claude Code on the web（claude.ai/code のクラウドコンテナ）から CircleCI
   の chunk sidecar を使えるようにセットアップする。web のコンテナには rsync と OpenSSH
   クライアントが無く、さらに chunk が作る鍵 ~/.ssh/chunk_ai が PKCS#8 形式の
-  ed25519 で OpenSSH が読めないため、「chunk sidecar ssh は通るのに chunk
+  ed25519 で Ubuntu 24.04 の OpenSSH が読めないため、「chunk sidecar ssh は通るのに chunk
   sidecar sync だけ失敗する」。この2つを同梱のスクリプトで直し、sync
   を含めた往復が通ることを確認する。「web で chunk sidecar sync が失敗する」「rsync:
   executable file not found」「Load key "~/.ssh/chunk_ai":
@@ -49,16 +49,20 @@ rsync --archive --delete --filter=":- .gitignore" \
   自分で入れる（chunk 本体に `which rsync` と `apt-get install -y -qq rsync`、
   `rsync: install rsync on sidecar` の文字列がある。実行時の動作は未確認）。
 
-### 原因2: chunk が作る鍵を OpenSSH が読めない
+### 原因2: chunk が作る鍵を、Ubuntu 24.04 の OpenSSH が読めない
 
 - chunk は `~/.ssh/chunk_ai` が無いと、自分で鍵を作る。その鍵は PKCS#8 形式の ed25519
-  （先頭行が `-----BEGIN PRIVATE KEY-----`）で、OpenSSH 9.6 は
-  `Load key "~/.ssh/chunk_ai": invalid format` として読めない。
+  （先頭行が `-----BEGIN PRIVATE KEY-----`）で、Ubuntu 24.04 の OpenSSH 9.6p1 は
+  `Load key "~/.ssh/chunk_ai": invalid format` として読めない（実測）。
+  - **OpenSSH 一般の制約ではない**: 上流のリリースノートでは、9.6 で「PEM PKCS#8 形式の
+    ED25519 秘密鍵の読み込み」が追加され、9.7 の項に「OpenSSL の ED25519 検出の不具合で
+    この機能が有効にならなかった」ビルドの修正が載っている。Ubuntu のビルドがこの不具合に
+    当たるかどうかは未確認。
   - chunk 本体（Go 製）には `ed25519.GenerateKey` と `MarshalPKCS8PrivateKey` が
     含まれており、鍵を PKCS#8 で書き出す実装になっているとみられる（文字列で確認）。
 - **chunk とは無関係に再現できる**:
 
-  | 鍵 | 形式 | OpenSSH 9.6 で読めたか |
+  | 鍵 | 形式 | Ubuntu 24.04 の OpenSSH 9.6p1 で読めたか |
   |----|------|-----------------------|
   | ed25519（openssl で生成） | PKCS#8 | 読めない（invalid format） |
   | ECDSA P-256 | PKCS#8 | 読めた |
@@ -124,10 +128,16 @@ bash "${CLAUDE_SKILL_DIR}/assets/setup-claude-web.sh"
 2. **目印のファイルで往復を確かめる**: `.gitignore` に入っていないファイルを使う。
 
    ```bash
-   echo "sync-probe $(date +%s)" > .chunk-sync-probe
-   chunk sidecar sync
-   chunk sidecar ssh -- cat "$(git rev-parse --show-toplevel)/.chunk-sync-probe"
-   rm .chunk-sync-probe && chunk sidecar sync   # 目印を消し、sidecar 側からも消す
+   PROBE=.chunk-sync-probe-claude-web   # このスキル専用の名前
+   if [ -e "$PROBE" ]; then
+     # 同名のファイルを上書き・削除しない。前回の残りなら、中身を確かめてから手で消す
+     echo "$PROBE が既にあるため中止する"
+   else
+     echo "sync-probe $(date +%s)" > "$PROBE"
+     chunk sidecar sync
+     chunk sidecar ssh -- cat "$(git rev-parse --show-toplevel)/$PROBE"
+     rm "$PROBE" && chunk sidecar sync   # 目印を消し、sidecar 側からも消す
+   fi
    ```
 
    `cat` が同じ内容を返せば成功。
