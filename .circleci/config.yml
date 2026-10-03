@@ -1,7 +1,7 @@
 version: 2.1
 
-# Same checks as .github/workflows/validate-skills.yml, run on CircleCI.
-# The scripts stay under .github/scripts so both CIs run the same code.
+# CI for this repository. The check scripts live under .github/scripts and
+# need only Python 3 (validate_skills.py also needs pyyaml).
 
 executors:
   python:
