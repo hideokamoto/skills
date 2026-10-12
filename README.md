@@ -18,6 +18,7 @@ This repository is the canonical source for the skills listed here.
 | [`dialogic-learning-style`](./skills/dialogic-learning-style/) | A custom writing style that paces explanations in chunks, reading progression vs. deep-dive signals from the user's replies so it neither lectures nor over-questions. | MIT |
 | [`research-handoff`](./skills/research-handoff/) | For research/analysis requests: declares who owns the conclusion, the assumed prior knowledge, and how to hand it over before starting, then checks the deliverable's format with a script (`check_handoff.py`). Also re-delivers when the reader says it is hard to follow. | MIT |
 | [`stop-and-align`](./skills/stop-and-align/) | When the user rejects or corrects the previous output, stops new work, states the current understanding of the request, and waits for confirmation. | MIT |
+| [`npm-circleci-release-setup`](./skills/npm-circleci-release-setup/) | Sets up CircleCI validate / npm publish pipelines for an npm library via the hideokamoto/circleci-configurations config-source approach, with semantic-release, npm Trusted Publisher (trustci) and commitlint + husky, following a fixed step order with user-confirmation stops. | MIT |
 
 Each skill directory may carry its own `license` field in `SKILL.md`'s frontmatter; where it differs from this repository's top-level [LICENSE](./LICENSE) (MIT), the skill directory's own license governs that skill.
 
@@ -36,7 +37,7 @@ npx skills add hideokamoto/skills --skill <skill-name>
 npx skills add hideokamoto/skills --list
 ```
 
-Where `<skill-name>` is one of `wordpress-handbook`, `circleci-cli`, `cursor-chunk-sidecar-setup`, `claude-web-chunk-sidecar-setup`, `export-session-log`, `dialogic-learning-style`, `research-handoff`, or `stop-and-align`.
+Where `<skill-name>` is one of `wordpress-handbook`, `circleci-cli`, `cursor-chunk-sidecar-setup`, `claude-web-chunk-sidecar-setup`, `export-session-log`, `dialogic-learning-style`, `research-handoff`, `stop-and-align`, or `npm-circleci-release-setup`.
 
 ## License
 
