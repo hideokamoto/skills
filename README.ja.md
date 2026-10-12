@@ -17,6 +17,7 @@ AI コーディングエージェント（Claude Code・Cursor・Codex など `S
 | [`export-session-log`](./skills/export-session-log/) | Claude Code セッション自身の生の JSONL トランスクリプト（要約ではなく tool_use/tool_result を含む全イベント）を、別セッションやスクリプトで分析できるように引き渡します。 | MIT |
 | [`dialogic-learning-style`](./skills/dialogic-learning-style/) | チャンク単位で解説し、ユーザーの返答から「進行」と「深掘り」のシグナルを見分けて、一方的な長大解説にも問い詰めにもならないよう対話のペースを制御するカスタム文体スキルです。 | MIT |
 | [`research-handoff`](./skills/research-handoff/) | 調査・分析の依頼で、着手前に「結論を誰が出すか・前提知識の仮定・渡し方」を宣言し、成果物の書式をスクリプト（`check_handoff.py`）で検査します。読みにくさへの不満が来たときの出し直しにも使います。 | MIT |
+| [`circleci-config-source-onboarding`](./skills/circleci-config-source-onboarding/) | 任意のGitHubリポジトリを `hideokamoto/circleci-configurations` の config source 方式（リポジトリに `.circleci/config.yml` を置かない）でCircleCIに統合します。Pipeline Definition/Trigger 作成、semantic-release、trustci による npm Trusted Publisher 登録、commitlint + husky までを扱います。 | MIT |
 | [`stop-and-align`](./skills/stop-and-align/) | 出力への否定や訂正を受けたとき、新しい作業に進まず、いま理解している要求を差し出して確認を待ちます。 | MIT |
 
 各スキルディレクトリは `SKILL.md` の frontmatter に個別の `license` を持つ場合があります。このリポジトリ直下の [LICENSE](./LICENSE)（MIT）と異なる場合は、そのスキルディレクトリ自身のライセンスが優先されます。
@@ -36,7 +37,7 @@ npx skills add hideokamoto/skills --skill <skill-name>
 npx skills add hideokamoto/skills --list
 ```
 
-`<skill-name>` には `wordpress-handbook` / `circleci-cli` / `cursor-chunk-sidecar-setup` / `claude-web-chunk-sidecar-setup` / `export-session-log` / `dialogic-learning-style` / `research-handoff` / `stop-and-align` のいずれかが入ります。
+`<skill-name>` には `wordpress-handbook` / `circleci-cli` / `cursor-chunk-sidecar-setup` / `claude-web-chunk-sidecar-setup` / `export-session-log` / `dialogic-learning-style` / `research-handoff` / `stop-and-align` / `circleci-config-source-onboarding` のいずれかが入ります。
 
 ## ライセンス
 
