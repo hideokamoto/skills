@@ -84,7 +84,7 @@ circleci project trigger create --project gh/<OWNER>/<REPO> \
 
 ### 4. npm Trusted Publisher 登録（trustci）
 
-`npm trust circleci` を直接組み立てず `npx trustci` に任せる。既存の CircleCI CLI 認証（`CIRCLE_TOKEN` 環境変数 or `~/.circleci/cli.yml`）があれば、org-id / project-id / pipeline-definition-id / vcs-origin は API から自動解決される。
+`npm trust circleci` を直接組み立てず `npx trustci` に任せる。trustci 0.3.0 は **npm >=11.5.1 / node >=22.14** を要求する（満たさないと `EBADENGINE` 警告が出る。実行前に `npm --version` / `node --version` を確認し、足りなければユーザーに更新を促す）。private パッケージ（`"private": true`）は対象から除外され、workspace 設定が無ければルートの `package.json` を単一パッケージとして扱う。既存の CircleCI CLI 認証（`CIRCLE_TOKEN` 環境変数 or `~/.circleci/cli.yml`）があれば、org-id / project-id / pipeline-definition-id / vcs-origin は API から自動解決される。
 
 ```bash
 # まず dry-run で解決結果を確認（推奨。実行はしない）
