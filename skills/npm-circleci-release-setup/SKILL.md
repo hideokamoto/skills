@@ -50,13 +50,14 @@ compatibility: gh、circleci CLI（CLI v1）、pnpm、npx（trustci）が必要�
 | CircleCI org slug | `gh/<OWNER>`（個人 org の場合は `gh/<OWNER>` がそのまま使える） |
 | circleci-configurations の config-repo-id（GitHub 数値 ID） | `gh api repos/hideokamoto/circleci-configurations --jq '.id'` |
 | 対象リポジトリの GitHub 数値 ID（checkout-repo-id） | `gh api repos/<OWNER>/<REPO> --jq '.id'` |
+| circleci-configurations の config ref（`--config-ref` に渡す、config repo 側のブランチ名） | `gh api repos/hideokamoto/circleci-configurations --jq '.default_branch'` |
 | 利用する context の UUID（名前からの解決が必要な場合のみ） | `circleci context list --org gh/<OWNER> --json` |
 
 - trustci は `--context-id` を UUID でしか受け付けない。使う context があれば、名前→UUID をここで解決する。context を使わない場合は、この解決手順自体をスキップしてよい。
 - CircleCI org UUID は明示指定不要。trustci がトークンから自動解決するため、原則取得しない。context 解決以外の用途がなければ省略する。
 - `circleci` CLI の操作では、`circleci-cli` スキルが利用できればそれに従う（CLI v1 と legacy CLI でコマンド体系が違うため）。
 
-**完了条件**: config-repo-id と checkout-repo-id が数値で得られている。
+**完了条件**: config-repo-id と checkout-repo-id が数値で、config ref がブランチ名で得られている。
 
 ## 手順 1: 現状把握
 
@@ -89,7 +90,7 @@ compatibility: gh、circleci CLI（CLI v1）、pnpm、npx（trustci）が必要�
 
 1. `package-lock.json` / `yarn.lock` 等を削除 → `pnpm install` → `pnpm-lock.yaml` を生成。
 2. `package.json` に `"packageManager": "pnpm@<version>"` を追加。
-3. 不足している scripts を追加（lint / typecheck / build / test）。typecheck が無ければ `"typecheck": "tsc --noEmit"` を追加。
+3. 不足している scripts を追加（lint / typecheck / build / test）。typecheck が無く、かつ TypeScript を使うリポジトリ（`tsconfig.json` がある）の場合は `"typecheck": "tsc --noEmit"` を追加。TypeScript を使わないリポジトリには追加しない（`tsc` が無く検証が失敗するため）。
 4. `.releaserc.json` を、`circleci-configurations` の `workflows/publish/templates/semantic-release/.releaserc.json` からコピーする。
    - branches / tagFormat / plugins はそのまま。
    - 既存リリースのタグが対象ブランチの履歴上にあることを確認する。
@@ -97,21 +98,22 @@ compatibility: gh、circleci CLI（CLI v1）、pnpm、npx（trustci）が必要�
 6. 既存の `.github/workflows` が重複・競合するなら、次のどちらかを判断する。**無言で両方残して壊れたままにしない。**
    - CircleCI の validate パイプラインに一本化して削除する。
    - pnpm 対応だけして残す。
-7. ローカルで `lint` / `typecheck` / `format:check` / `build` / `test` を**全部**実行して確認する。
+7. ローカルで `lint` / `typecheck` / `format:check` / `build` / `test` のうち、`package.json` に定義されているものを**全部**実行して確認する。定義が無いために実行しなかった項目（TypeScript を使わない場合の `typecheck`、未定義の `format:check` など）は、その旨を報告する。
 8. 新しいブランチで commit・push・PR 作成。**default branch への直接 push はしない。**
 
 ### 停止点B（必須）
 
 PR のマージはユーザー判断。マージしない。
 
-**完了条件**: 5 つのコマンドの実行結果（成功/失敗）を示せる。PR の URL を示せる。
+**完了条件**: 実行した各コマンドの結果（成功/失敗）と、実行しなかった項目とその理由を示せる。PR の URL を示せる。
 
 ## 手順 3: CircleCI Pipeline Definition / Trigger 作成
 
-1. 既存状態を確認する。
+1. 既存状態を確認する。`pipeline list` は Pipeline Definition の一覧であり、Trigger は含まれない。既存の Definition ごとに Trigger も確認する（残っている Trigger が同じ push で起動すると、新旧のパイプラインが重複して走るため）。
 
    ```bash
    circleci pipeline list --project gh/<OWNER>/<REPO> --json
+   circleci project trigger list --project gh/<OWNER>/<REPO> --pipeline-definition-id <既存DefinitionのID> --json
    ```
 
 2. **2 つの Pipeline Definition** を作成する。checkout / config ともに `--checkout-provider` / `--config-provider` は `github_app`。`github_oauth` は使えない。
@@ -128,32 +130,40 @@ PR のマージはユーザー判断。マージしない。
      --checkout-provider github_app --checkout-repo-id <対象repoの数値ID> --json
    ```
 
-3. **Trigger** を作成する。config repo と checkout repo が別なので `--config-ref <デフォルトブランチ>` が**必須**。無いと `400: a config ref must be provided...` で失敗する。
+3. **Trigger** を作成する。config repo と checkout repo が別なので `--config-ref <config repoのブランチ>` が**必須**。無いと `400: a config ref must be provided...` で失敗する。
 
    ```bash
    circleci project trigger create --project gh/<OWNER>/<REPO> \
      --pipeline-definition-id <validateのid> --repo-id <対象repoの数値ID> \
-     --event-preset all-pushes --config-ref <デフォルトブランチ> --json
+     --event-preset all-pushes --config-ref <config repoのブランチ> --json
 
    circleci project trigger create --project gh/<OWNER>/<REPO> \
      --pipeline-definition-id <publishのid> --repo-id <対象repoの数値ID> \
-     --event-preset default-branch-pushes --config-ref <デフォルトブランチ> --json
+     --event-preset default-branch-pushes --config-ref <config repoのブランチ> --json
    ```
 
    タグ手動運用のテンプレを使う場合は、publish の `--event-preset` を `only-tags` にする。
 
-`<デフォルトブランチ>` は、手順1で `gh repo view` から得た値を使う。
+`<config repoのブランチ>` は、手順0で得た circleci-configurations 側のブランチ名を使う。`--config-ref` は config を取得する Git ref（CircleCI CLI リファレンス: 「config repo が event source repo と異なる場合のみ必要」）であり、対象リポジトリの default branch（手順1）ではない。両者を混同しない。
 
 **完了条件**: 2 つの Pipeline Definition の id と、2 つの Trigger の作成結果（JSON）が得られている。
 
 ## 手順 4: npm Trusted Publisher 登録（trustci 使用）
 
-`npm trust circleci` を直接組み立てず、`npx trustci` に任せる。既存の CircleCI CLI 認証（`CIRCLE_TOKEN` 環境変数、または `~/.circleci/cli.yml`）があれば、org-id / project-id / pipeline-definition-id / vcs-origin は API から自動解決される。
+`npm trust circleci` を直接組み立てず、`npx trustci@<trustciのバージョン>` に任せる。既存の CircleCI CLI 認証（`CIRCLE_TOKEN` 環境変数、または `~/.circleci/cli.yml`）があれば、org-id / project-id / pipeline-definition-id / vcs-origin は API から自動解決される。
 
-まず **dry-run** で解決結果を確認する（推奨）。dry-run は実行しない確認である。
+`npx trustci` は CircleCI の認証情報を使って、registry から取得したパッケージを実行する。未確認の更新版が実行されないよう、バージョンを固定する。最初に版を 1 つ決め、dry-run と本実行の**両方で同じ版**を使う。
 
 ```bash
-npx trustci --provider circleci --allow-publish --dry-run \
+npm view trustci version
+```
+
+出力された版を `<trustciのバージョン>` として、ユーザーに提示する。
+
+次に **dry-run** で解決結果を確認する（推奨）。dry-run は実行しない確認である。
+
+```bash
+npx trustci@<trustciのバージョン> --provider circleci --allow-publish --dry-run \
   --file workflows/publish/<選んだファイル>.yaml \
   [--context-id <contextのUUID> ...]   # contextを使う場合のみ、複数指定可
 ```
@@ -161,22 +171,24 @@ npx trustci --provider circleci --allow-publish --dry-run \
 dry-run の出力を確認してから、本実行のコマンドを組み立てる。
 
 ```bash
-npx trustci --provider circleci --allow-publish \
+npx trustci@<trustciのバージョン> --provider circleci --allow-publish \
   --file workflows/publish/<選んだファイル>.yaml \
   [--context-id <contextのUUID> ...]
 ```
 
 - `--file` は publish 用の pipeline 定義を一意に選ぶためだけに使われる。プロジェクトに pipeline 定義が 1 つしかない場合は省略可。
 - `--vcs-origin` を自動推定に任せられない場合（`package.json` の repository と git remote が一致しない等）のみ明示指定する。
-- dry-run で vcs-origin 解決や UUID 解決が失敗する場合は、trustci のバージョンを確認する（既知の問題が修正されている可能性があるため）。解決しなければ、`npm trust circleci` を**手動の完全形式**（org-id / project-id / pipeline-definition-id / vcs-origin / context-id を個別指定）にフォールバックする。**これが、本書で唯一認められているフォールバックである。**
+- dry-run で vcs-origin 解決や UUID 解決が失敗する場合は、trustci のバージョンを確認する（既知の問題が修正されている可能性があるため）。版を変える場合は、dry-run と本実行の両方を同じ新しい版にそろえ、ユーザーに伝える。解決しなければ、`npm trust circleci` を**手動の完全形式**（org-id / project-id / pipeline-definition-id / vcs-origin / context-id を個別指定）にフォールバックする。**これが、本書で唯一認められているフォールバックである。**
 
 ### 停止点C（必須）
 
 ブラウザでの 2FA/OTP 承認が必須なので、**本実行のコマンドはユーザー自身が実行する**。エージェントはコマンドを提示して止まる。本実行をエージェントが実行しない。
 
-**完了条件**: dry-run の出力をユーザーに示し、本実行コマンドを提示した。
+**完了条件**: 固定した trustci のバージョン、dry-run の出力をユーザーに示し、同じバージョンを指定した本実行コマンドを提示した。
 
 ## 手順 5: Conventional Commits 強制（commitlint + husky）
+
+このスキルのコマンドは pnpm を例に書いている。**停止点Aで決めた package manager を使う。** pnpm への移行を承認していない場合は pnpm コマンドを実行せず、同等のコマンド（npm なら `npm install -D` / `npx` / `npm install`）に置き換える。lockfile を別の package manager 用に作り替えない。
 
 1. 依存を追加する。
 
